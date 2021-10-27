@@ -157,6 +157,11 @@ void initParticles(void)
  // TO DO: Complete this function to generate an initially random
  //        list of particles.
  ***************************************************************/
+ for (int i = 0; i < n_particles; i++) {
+   struct particle *new_particle = initRobot(map, sx, sy);
+   new_particle->next = list;
+   list = new_particle;
+ } 
 
 }
 
@@ -206,7 +211,16 @@ void computeLikelihood(struct particle *p, struct particle *rob, double noise_si
  // TO DO: Complete this function to calculate the particle's
  //        likelihood given the robot's measurements
  ****************************************************************/
-
+ // need to deal with case where numbers go to zero
+ //double error_arr[16];
+ double result, prob_i;
+ long double prob = 1;
+ for (int i = 0; i < 16; i++) {
+   result = (p->measureD[i]) - (rob->measureD[i]);
+   prob_i = GaussEval(result, noise_sigma);
+   prob = prob * prob_i;
+ }
+ p->prob = prob;
 }
 
 void ParticleFilterLoop(void)
@@ -223,6 +237,10 @@ void ParticleFilterLoop(void)
   struct particle *p,*pmax;
   char line[1024];
   // Add any local variables you need right below.
+  struct particle *q = NULL;
+  struct particle *resample = NULL;
+  long double sum = 0;
+  long double norm = 0;
 
   if (!first_frame)
   {
@@ -244,6 +262,21 @@ void ParticleFilterLoop(void)
    //        You should see a moving robot and sonar figure with
    //        a set of moving particles.
    ******************************************************************/
+   q = list;
+   while (q != NULL) {
+     move(q, 2);
+     if (hit(q, map, sx, sy)) {
+       q->theta = rand()%(359 + 1);
+       move(q, 2);
+     }
+     ground_truth(q, map, sx, sy);
+     q = q->next;
+   }
+   move(robot, 2);
+   if (hit(robot, map, sx, sy)) {
+     robot->theta = rand()%(359 + 1);
+     move(robot, 2);
+   }
 
    // Step 2 - The robot makes a measurement - use the sonar
    sonar_measurement(robot,map,sx,sy);
@@ -253,7 +286,18 @@ void ParticleFilterLoop(void)
    //          each particle. Once you have a likelihood for every
    //          particle, turn it into a probability by ensuring that
    //          the sum of the likelihoods for all particles is 1.
+   q = list;
+   while (q != NULL) {
+     computeLikelihood(q, robot, 20);
+     sum += q->prob;
+     q = q->next;
+   }
 
+   q = list;
+   while (q != NULL) {
+     q->prob = q->prob / sum;
+     q = q->next;
+   }
    /*******************************************************************
    // TO DO: Complete Step 3 and test it
    //        You should see the brightness of particles change
@@ -293,7 +337,35 @@ void ParticleFilterLoop(void)
    //        Hopefully the largest cluster will be on and around
    //        the robot's actual location/direction.
    *******************************************************************/
+   /*sum = 0;
+   for (int i = 0; i < n_particles; i++) {
+     double rand_prob = rand()%(1 + 1);
+     q = list;
+     sum = q->prob;
+     while (rand_prob > sum) {
+       q = q->next;
+       sum += q->prob;
+     }
+     struct particle *new_particle = (struct particle *)malloc(sizeof(struct particle));
+     new_particle->x = q->x;
+     new_particle->y = q->y;
+     new_particle->theta = q->theta;
+     new_particle->prob = q->prob;
+     new_particle->next = resample;
+     for (int j = 0; j < 16; j++) {
+       new_particle->measureD[j] = q->measureD[j];
+     }
+     resample = new_particle;
+     norm += new_particle->prob;
+   }
 
+   q = resample;
+   while (q != NULL) {
+     q->prob = q->prob / norm;
+     q = q->next;
+   }*/
+   //deleteList(list);
+   //list = resample;
   }  // End if (!first_frame)
 
   /***************************************************
@@ -378,7 +450,7 @@ void ParticleFilterLoop(void)
   if (first_frame)
   {
    fprintf(stderr,"All set! press enter to start\n");
-   gets(&line[0]);
+   char *result = fgets(&line[0], 10, stdin);
    first_frame=0;
   }
 }
