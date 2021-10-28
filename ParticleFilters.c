@@ -264,18 +264,28 @@ void ParticleFilterLoop(void)
    ******************************************************************/
    q = list;
    while (q != NULL) {
-     move(q, 1);
+     move(q, 2);
      if (hit(q, map, sx, sy)) {
-       q->theta = rand()%(359 + 1);
-       move(q, 1);
+       if (q->theta <= 180) {
+         q->theta = rand()%(359 - 180 + 1) + 180;
+         move(q, 2);
+       } else {
+         q->theta = rand()%(179 + 1);
+         move(q, 2);
+       }
      }
      ground_truth(q, map, sx, sy);
      q = q->next;
    }
-   move(robot, 1);
+   move(robot, 2);
    if (hit(robot, map, sx, sy)) {
-     robot->theta = rand()%(359 + 1);
-     move(robot, 1);
+     if (robot->theta <= 180) {
+       robot->theta = rand()%(359 - 180 + 1) + 180;
+       move(robot, 2);
+     } else {
+       robot->theta = rand()%(179 + 1);
+       move(robot, 2);
+     }
    }
 
    // Step 2 - The robot makes a measurement - use the sonar
