@@ -241,6 +241,7 @@ void ParticleFilterLoop(void)
   struct particle *resample = NULL;
   struct particle *new_particle = NULL;
   long double sum = 0;
+  double rand_prob = 0;
 
   if (!first_frame)
   {
@@ -349,7 +350,7 @@ void ParticleFilterLoop(void)
    *******************************************************************/
    /*sum = 0;
    for (int i = 0; i < n_particles; i++) {
-     double rand_prob = rand()%(1 + 1);
+     rand_prob = rand()%(1 + 1);
      q = list;
      sum = q->prob;
      while (rand_prob > sum && q->next != NULL) {
@@ -360,11 +361,7 @@ void ParticleFilterLoop(void)
      new_particle->x = q->x;
      new_particle->y = q->y;
      new_particle->theta = q->theta;
-     new_particle->prob = q->prob;
      new_particle->next = resample;
-     for (int j = 0; j < 16; j++) {
-       new_particle->measureD[j] = q->measureD[j];
-     }
      resample = new_particle;
    }
 
