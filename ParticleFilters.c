@@ -212,8 +212,8 @@ void computeLikelihood(struct particle *p, struct particle *rob, double noise_si
  //        likelihood given the robot's measurements
  ****************************************************************/
  // need to deal with case where numbers go to zero
- //double error_arr[16];
- double result, prob_i;
+ double result;
+ long double prob_i;
  long double prob = 1;
  for (int i = 0; i < 16; i++) {
    result = (p->measureD[i]) - (rob->measureD[i]);
@@ -239,8 +239,8 @@ void ParticleFilterLoop(void)
   // Add any local variables you need right below.
   struct particle *q = NULL;
   struct particle *resample = NULL;
+  struct particle *new_particle = NULL;
   long double sum = 0;
-  long double norm = 0;
 
   if (!first_frame)
   {
@@ -264,18 +264,18 @@ void ParticleFilterLoop(void)
    ******************************************************************/
    q = list;
    while (q != NULL) {
-     move(q, 2);
+     move(q, 1);
      if (hit(q, map, sx, sy)) {
        q->theta = rand()%(359 + 1);
-       move(q, 2);
+       move(q, 1);
      }
      ground_truth(q, map, sx, sy);
      q = q->next;
    }
-   move(robot, 2);
+   move(robot, 1);
    if (hit(robot, map, sx, sy)) {
      robot->theta = rand()%(359 + 1);
-     move(robot, 2);
+     move(robot, 1);
    }
 
    // Step 2 - The robot makes a measurement - use the sonar
@@ -342,11 +342,11 @@ void ParticleFilterLoop(void)
      double rand_prob = rand()%(1 + 1);
      q = list;
      sum = q->prob;
-     while (rand_prob > sum) {
+     while (rand_prob > sum && q->next != NULL) {
        q = q->next;
        sum += q->prob;
      }
-     struct particle *new_particle = (struct particle *)malloc(sizeof(struct particle));
+     new_particle = (struct particle *)malloc(sizeof(struct particle));
      new_particle->x = q->x;
      new_particle->y = q->y;
      new_particle->theta = q->theta;
@@ -356,16 +356,10 @@ void ParticleFilterLoop(void)
        new_particle->measureD[j] = q->measureD[j];
      }
      resample = new_particle;
-     norm += new_particle->prob;
    }
 
-   q = resample;
-   while (q != NULL) {
-     q->prob = q->prob / norm;
-     q = q->next;
-   }*/
-   //deleteList(list);
-   //list = resample;
+   deleteList(list);
+   list = resample;*/
   }  // End if (!first_frame)
 
   /***************************************************
