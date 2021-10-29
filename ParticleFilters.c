@@ -348,9 +348,9 @@ void ParticleFilterLoop(void)
    //        Hopefully the largest cluster will be on and around
    //        the robot's actual location/direction.
    *******************************************************************/
-   /*sum = 0;
+   sum = 0;
    for (int i = 0; i < n_particles; i++) {
-     rand_prob = rand()%(1 + 1);
+     rand_prob = (double)rand() / (double)RAND_MAX;
      q = list;
      sum = q->prob;
      while (rand_prob > sum && q->next != NULL) {
@@ -366,7 +366,7 @@ void ParticleFilterLoop(void)
    }
 
    deleteList(list);
-   list = resample;*/
+   list = resample;
   }  // End if (!first_frame)
 
   /***************************************************
